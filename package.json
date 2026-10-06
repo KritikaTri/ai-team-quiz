@@ -1,0 +1,13 @@
+{
+  "name": "ai-team-quiz",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live team quiz with host controls, timed voting, and result percentages.",
+  "main": "quiz-server.js",
+  "scripts": {
+    "start": "node quiz-server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
