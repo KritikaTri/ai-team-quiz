@@ -204,6 +204,7 @@ function loadRooms() {
     for (const room of Array.isArray(stored) ? stored : []) {
       if (!room?.id || !Array.isArray(room.questions) || room.updatedAt < cutoff) continue;
       room.sessions = room.sessions && typeof room.sessions === 'object' ? room.sessions : {};
+      room.started = room.started === true;
       room.version = Number(room.version) || 1;
       room.updatedAt = Number(room.updatedAt) || Date.now();
       rooms.set(room.id, room);
@@ -266,7 +267,8 @@ function stateFor(room, voterId = '') {
   const indices = currentIndices(room);
   const question = currentQuestion(room);
   let stage;
-  if (!question) stage = room.roundIndex < room.rounds.length - 1 ? 'round-complete' : 'quiz-complete';
+  if (!room.started) stage = 'lobby';
+  else if (!question) stage = room.roundIndex < room.rounds.length - 1 ? 'round-complete' : 'quiz-complete';
   else if (!room.active) stage = 'waiting';
   else stage = room.active.open ? 'voting' : 'results';
 
@@ -296,7 +298,7 @@ function stateFor(room, voterId = '') {
     questionNumber: question ? room.position + 1 : indices.length,
     roundCount: indices.length,
     stage,
-    question: publicQuestion(question, stage),
+    question: stage === 'lobby' ? null : publicQuestion(question, stage),
     endsAt: room.active?.endsAt || null,
     totalVotes: values.length,
     myVote: voterId ? votes[voterId] ?? null : null,
@@ -321,6 +323,7 @@ function createRoom(body) {
     rounds,
     roundIndex,
     position: 0,
+    started: false,
     active: null,
     sessions: {},
     createdAt: Date.now(),
@@ -332,7 +335,14 @@ function createRoom(body) {
   return room;
 }
 
+function startQuiz(room) {
+  if (room.started) return;
+  room.started = true;
+  touchRoom(room);
+}
+
 function startVote(room, duration) {
+  if (!room.started) throw Object.assign(new Error('Start the quiz before opening the vote.'), { status: 409 });
   const question = currentQuestion(room);
   if (!question) throw Object.assign(new Error('There is no question to vote on.'), { status: 409 });
   if ((question.kind || 'mcq') === 'debate') {
@@ -478,7 +488,8 @@ async function route(req, res) {
 
     requireHost(room, body.hostToken);
 
-    if (url.pathname === '/api/room/start-vote') startVote(room, body.duration);
+    if (url.pathname === '/api/room/start') startQuiz(room);
+    else if (url.pathname === '/api/room/start-vote') startVote(room, body.duration);
     else if (url.pathname === '/api/room/close-vote') closeVote(room);
     else if (url.pathname === '/api/room/next') moveNext(room);
     else if (url.pathname === '/api/room/previous') movePrevious(room);
