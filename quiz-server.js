@@ -15,7 +15,7 @@ const MAX_QUESTIONS = 120;
 const MAX_OPTIONS = 8;
 const MAX_TEXT = 800;
 const ADMIN_PIN = String(process.env.QUIZ_ADMIN_PIN || '');
-const ADMIN_SESSION_MS = 12 * 60 * 60 * 1000;
+const ADMIN_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 
 const rooms = new Map();
 
@@ -505,6 +505,11 @@ function staticFile(req, res, url) {
 
 async function route(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+
+  if (req.method === 'GET' && url.pathname === '/host') {
+    res.writeHead(302, { location: isAdmin(req) ? '/ai-quiz.html' : '/admin.html', 'cache-control': 'no-store' });
+    return res.end();
+  }
 
   if (req.method === 'GET' && url.pathname === '/api/admin/status') {
     return send(res, 200, { authenticated: isAdmin(req) });
