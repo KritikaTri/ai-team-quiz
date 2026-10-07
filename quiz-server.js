@@ -382,10 +382,6 @@ function recordVote(room, body) {
 
   const state = stateFor(room, voter);
   if (state.stage !== 'voting') throw Object.assign(new Error('Voting is closed.'), { status: 409 });
-  if (Object.hasOwn(room.active.votes, voter)) {
-    throw Object.assign(new Error('Your vote has already been recorded.'), { status: 409 });
-  }
-
   const question = currentQuestion(room);
   const kind = question.kind || 'mcq';
   if (kind === 'guess') {
