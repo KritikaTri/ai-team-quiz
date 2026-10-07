@@ -14,17 +14,56 @@ const MAX_BODY_BYTES = 1_000_000;
 const MAX_QUESTIONS = 120;
 const MAX_OPTIONS = 8;
 const MAX_TEXT = 800;
+const ADMIN_PIN = String(process.env.QUIZ_ADMIN_PIN || '');
+const ADMIN_SESSION_MS = 12 * 60 * 60 * 1000;
 
 const rooms = new Map();
 
-function send(res, status, data, type = 'application/json; charset=utf-8') {
+function send(res, status, data, type = 'application/json; charset=utf-8', extraHeaders = {}) {
   res.writeHead(status, {
     'content-type': type,
     'cache-control': 'no-store',
-    'x-content-type-options': 'nosniff'
+    'x-content-type-options': 'nosniff',
+    ...extraHeaders
   });
   if (res.req?.method === 'HEAD') return res.end();
   res.end(type.startsWith('application/json') ? JSON.stringify(data) : data);
+}
+
+function secureEqual(left, right) {
+  const a = Buffer.from(String(left));
+  const b = Buffer.from(String(right));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function adminSignature(expiresAt) {
+  return crypto.createHmac('sha256', ADMIN_PIN).update(`quiz-admin:${expiresAt}`).digest('base64url');
+}
+
+function adminToken() {
+  const expiresAt = Date.now() + ADMIN_SESSION_MS;
+  return `${expiresAt}.${adminSignature(expiresAt)}`;
+}
+
+function cookieValue(req, name) {
+  const cookies = String(req.headers.cookie || '').split(';');
+  for (const cookie of cookies) {
+    const [key, ...parts] = cookie.trim().split('=');
+    if (key === name) return decodeURIComponent(parts.join('='));
+  }
+  return '';
+}
+
+function isAdmin(req) {
+  if (!ADMIN_PIN) return false;
+  const [expiresText, signature = ''] = cookieValue(req, 'quiz_admin').split('.');
+  const expiresAt = Number(expiresText);
+  return Number.isFinite(expiresAt) && expiresAt > Date.now() && secureEqual(signature, adminSignature(expiresAt));
+}
+
+function adminCookie(req, token, maxAge = Math.floor(ADMIN_SESSION_MS / 1000)) {
+  const secure = req.socket.encrypted || String(req.headers['x-forwarded-proto'] || '').includes('https');
+  return `quiz_admin=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure ? '; Secure' : ''}`;
 }
 
 function sendError(res, status, message) {
@@ -448,10 +487,14 @@ function contentType(filePath) {
 }
 
 function staticFile(req, res, url) {
-  const pathname = url.pathname === '/' ? '/ai-quiz.html' : url.pathname;
-  const publicFiles = new Set(['/ai-quiz.html', '/live.html']);
+  const pathname = url.pathname === '/' ? '/live.html' : url.pathname;
+  const publicFiles = new Set(['/ai-quiz.html', '/live.html', '/admin.html']);
   if (!publicFiles.has(pathname)) {
     return send(res, 404, 'Not found', 'text/plain; charset=utf-8');
+  }
+  if (pathname === '/ai-quiz.html' && !isAdmin(req)) {
+    res.writeHead(302, { location: `/admin.html?next=${encodeURIComponent(`${url.pathname}${url.search}${url.hash}`)}`, 'cache-control': 'no-store' });
+    return res.end();
   }
   const safePath = path.resolve(ROOT, `.${pathname}`);
   if (!safePath.startsWith(ROOT + path.sep) || !fs.existsSync(safePath) || !fs.statSync(safePath).isFile()) {
@@ -462,6 +505,21 @@ function staticFile(req, res, url) {
 
 async function route(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+
+  if (req.method === 'GET' && url.pathname === '/api/admin/status') {
+    return send(res, 200, { authenticated: isAdmin(req) });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/login') {
+    const body = await readBody(req);
+    if (!ADMIN_PIN) return sendError(res, 503, 'Admin access is not configured.');
+    if (!secureEqual(safeText(body.pin, '', 200), ADMIN_PIN)) return sendError(res, 401, 'Incorrect admin PIN.');
+    return send(res, 200, { authenticated: true }, 'application/json; charset=utf-8', { 'set-cookie': adminCookie(req, adminToken()) });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/logout') {
+    return send(res, 200, { authenticated: false }, 'application/json; charset=utf-8', { 'set-cookie': adminCookie(req, '', 0) });
+  }
 
   if (req.method === 'GET' && url.pathname === '/api/health') {
     pruneRooms();
@@ -474,6 +532,7 @@ async function route(req, res) {
   }
 
   if (req.method === 'POST' && url.pathname === '/api/room/create') {
+    if (!isAdmin(req)) return sendError(res, 403, 'Admin login is required to create a quiz room.');
     const body = await readBody(req);
     const room = createRoom(body);
     return send(res, 200, { roomId: room.id, hostToken: room.hostToken, ips: ips(), port: PORT, joinUrls: joinUrls(req, room.id) });
@@ -494,6 +553,7 @@ async function route(req, res) {
       return send(res, 200, stateFor(room, safeText(body.voter, '', 120)));
     }
 
+    if (!isAdmin(req)) return sendError(res, 403, 'Admin login is required for host controls.');
     requireHost(room, body.hostToken);
 
     if (url.pathname === '/api/room/start') startQuiz(room);
