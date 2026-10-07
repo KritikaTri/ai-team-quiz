@@ -49,7 +49,7 @@ button{border-radius:11px;background:var(--blue);font-weight:600;box-shadow:0 6p
 <header><a href="/" style="color:inherit;text-decoration:none"><div class="tag">AI · QA · networking · brain break</div><div class="brand">Team Quiz · Live</div></a></header>
 <main class="wrap"><section id="screen" class="panel"><p class="muted">Connecting to the quiz…</p></section></main>
 <script>
-const params=new URLSearchParams(location.search),role=params.get('role'),roomId=params.get('room'),preferredRound=params.get('round'),voterId=localStorage.getItem('teamQuizVoter')||`voter-${Date.now()}-${Math.random().toString(36).slice(2)}`;localStorage.setItem('teamQuizVoter',voterId);
+const params=new URLSearchParams(location.search),role=params.get('role'),roomId=params.get('room'),preferredRound=params.get('round'),voterId=sessionStorage.getItem('teamQuizVoter')||`voter-${Date.now()}-${crypto.randomUUID?.()||Math.random().toString(36).slice(2)}`;sessionStorage.setItem('teamQuizVoter',voterId);
 const screen=document.getElementById('screen'),hostTokenKey=id=>`teamQuizHostToken:${id}`;
 let room=null,hostToken='',qs=[],selectedAnswer=null,lastState=null,tickTimer=null,stateTimer=null,clockOffset=0,lastDrawKey='',shareUrls=[],voteSaving=false,pendingVote=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
