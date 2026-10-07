@@ -9,7 +9,7 @@
 </style>
 </head>
 <body>
-<main class="card"><div class="tag">Private host area</div><h1>Host sign-in</h1><p>Enter the host PIN once. This browser will remember you for 30 days.</p><form id="loginForm"><label for="pin">Host PIN</label><input id="pin" type="password" autocomplete="current-password" autofocus required><button type="submit">Open host dashboard</button><div class="error" id="error"></div></form><a class="back" href="/live.html">Join a quiz instead</a></main>
+<main class="card"><div class="tag">Private host area</div><h1>Host sign-in</h1><p>Enter the host PIN to open the dashboard and generate a room code.</p><form id="loginForm"><label for="pin">Host PIN</label><input id="pin" type="password" autocomplete="current-password" autofocus required><button type="submit">Open host dashboard</button><div class="error" id="error"></div></form><a class="back" href="/live.html">Join a quiz instead</a></main>
 <script>
 const requested=new URLSearchParams(location.search).get('next')||'/ai-quiz.html';
 const next=/^\/(ai-quiz\.html|live\.html\?role=host)/.test(requested)?requested:'/ai-quiz.html';
