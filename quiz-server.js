@@ -266,6 +266,10 @@ function stateFor(room, voterId = '') {
   closeExpiredVote(room);
   const indices = currentIndices(room);
   const question = currentQuestion(room);
+  if (room.started && question && !room.active && (question.kind || 'mcq') !== 'debate') {
+    prepareAutomaticVote(room);
+    touchRoom(room);
+  }
   let stage;
   if (!room.started) stage = 'lobby';
   else if (!question) stage = room.roundIndex < room.rounds.length - 1 ? 'round-complete' : 'quiz-complete';
@@ -335,19 +339,9 @@ function createRoom(body) {
   return room;
 }
 
-function startQuiz(room) {
-  if (room.started) return;
-  room.started = true;
-  touchRoom(room);
-}
-
-function startVote(room, duration) {
-  if (!room.started) throw Object.assign(new Error('Start the quiz before opening the vote.'), { status: 409 });
+function prepareAutomaticVote(room, duration = 15) {
   const question = currentQuestion(room);
-  if (!question) throw Object.assign(new Error('There is no question to vote on.'), { status: 409 });
-  if ((question.kind || 'mcq') === 'debate') {
-    throw Object.assign(new Error('Discussion questions do not use timed voting.'), { status: 409 });
-  }
+  if (!question || (question.kind || 'mcq') === 'debate') return;
   const seconds = Math.min(90, Math.max(5, Number(duration) || 15));
   room.active = {
     questionKey: questionKey(room),
@@ -357,6 +351,21 @@ function startVote(room, duration) {
     votes: {}
   };
   rememberSession(room);
+}
+
+function startQuiz(room) {
+  if (room.started) return;
+  room.started = true;
+  prepareAutomaticVote(room);
+  touchRoom(room);
+}
+
+function startVote(room, duration) {
+  if (!room.started) throw Object.assign(new Error('Start the quiz before opening the vote.'), { status: 409 });
+  const question = currentQuestion(room);
+  if (!question) throw Object.assign(new Error('There is no question to vote on.'), { status: 409 });
+  if ((question.kind || 'mcq') === 'debate') throw Object.assign(new Error('Discussion questions do not use timed voting.'), { status: 409 });
+  prepareAutomaticVote(room, duration);
   touchRoom(room);
 }
 
@@ -403,6 +412,7 @@ function moveNext(room) {
   rememberSession(room);
   room.position += 1;
   restoreSession(room);
+  if (!room.active) prepareAutomaticVote(room);
   touchRoom(room);
 }
 
@@ -414,6 +424,7 @@ function movePrevious(room) {
   rememberSession(room);
   room.position -= 1;
   restoreSession(room);
+  if (!room.active) prepareAutomaticVote(room);
   touchRoom(room);
 }
 
@@ -425,6 +436,7 @@ function moveNextRound(room) {
   room.roundIndex += 1;
   room.position = 0;
   restoreSession(room);
+  if (!room.active) prepareAutomaticVote(room);
   touchRoom(room);
 }
 
