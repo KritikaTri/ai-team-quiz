@@ -487,13 +487,13 @@ function contentType(filePath) {
 }
 
 function staticFile(req, res, url) {
-  const pathname = url.pathname === '/' ? '/live.html' : url.pathname;
-  const publicFiles = new Set(['/ai-quiz.html', '/live.html', '/admin.html']);
+  const pathname = url.pathname === '/' ? '/index.html' : url.pathname;
+  const publicFiles = new Set(['/index.html', '/ai-quiz.html', '/live.html', '/admin.html']);
   if (!publicFiles.has(pathname)) {
     return send(res, 404, 'Not found', 'text/plain; charset=utf-8');
   }
   if (pathname === '/ai-quiz.html' && !isAdmin(req)) {
-    res.writeHead(302, { location: '/live.html', 'cache-control': 'no-store' });
+    res.writeHead(302, { location: '/', 'cache-control': 'no-store' });
     return res.end();
   }
   const safePath = path.resolve(ROOT, `.${pathname}`);
