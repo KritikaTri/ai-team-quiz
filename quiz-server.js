@@ -493,7 +493,7 @@ function staticFile(req, res, url) {
     return send(res, 404, 'Not found', 'text/plain; charset=utf-8');
   }
   if (pathname === '/ai-quiz.html' && !isAdmin(req)) {
-    res.writeHead(302, { location: `/admin.html?next=${encodeURIComponent(`${url.pathname}${url.search}${url.hash}`)}`, 'cache-control': 'no-store' });
+    res.writeHead(302, { location: '/live.html', 'cache-control': 'no-store' });
     return res.end();
   }
   const safePath = path.resolve(ROOT, `.${pathname}`);
