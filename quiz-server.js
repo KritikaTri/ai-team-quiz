@@ -507,7 +507,7 @@ async function route(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
   if (req.method === 'GET' && url.pathname === '/host') {
-    res.writeHead(302, { location: '/admin.html?next=%2Fai-quiz.html', 'cache-control': 'no-store', 'set-cookie': adminCookie(req, '', 0) });
+    res.writeHead(302, { location: '/admin.html?next=%2Flive.html%3Frole%3Dhost', 'cache-control': 'no-store', 'set-cookie': adminCookie(req, '', 0) });
     return res.end();
   }
 
