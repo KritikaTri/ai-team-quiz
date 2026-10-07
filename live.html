@@ -61,7 +61,7 @@ function renderJoinScreen(){screen.innerHTML=`<div class="tag">Team brain break<
 function joinRoom(){const code=String(document.getElementById('roomCode')?.value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(!code){document.getElementById('joinError').textContent='Enter the room code.';return}location.href=`live.html?room=${encodeURIComponent(code)}`}
 function renderHostSetup(){qs=JSON.parse(localStorage.getItem('aiQaQuiz45')||'[]');screen.innerHTML=`<div class="tag">Host setup</div><h1>Host a live quiz</h1><p class="muted">Create one room code for the whole team. The quiz will begin from Round 1.</p><div class="stepnote"><b>1</b><span>Generate a room code.</span><b>2</b><span>Ask teammates to open this quiz site and enter that code.</span><b>3</b><span>Start the quiz when everyone is in.</span></div>${qs.length?`<button style="width:100%;margin-top:8px" onclick="createRoom()">Generate a room code</button>`:'<p class="warning">No saved quiz is available in this browser. Return to the question editor, then choose “Host a live team quiz.”</p><p><a href="/ai-quiz.html#home">Open question editor</a></p>'}<p id="hostError" class="error"></p>`}
 async function createRoom(){try{qs=JSON.parse(localStorage.getItem('aiQaQuiz45')||'[]');const result=await api('/api/room/create',{questions:qs});room=result.roomId;hostToken=result.hostToken;localStorage.setItem(hostTokenKey(room),hostToken);history.replaceState({},'',`live.html?role=host&room=${room}`);renderHost();startPolling()}catch(e){document.getElementById('hostError').textContent=e.message}}
-function renderHost(){screen.innerHTML=`<div class="tag">Host · keep this screen open</div><div class="center"><div class="muted">Share this room code with your team</div><div class="roomcode">${esc(room)}</div><p class="muted">Teammates open this same quiz website and enter the code. No participant link is needed.</p></div><h1 id="hostHeading">Live quiz</h1><div id="hostState"></div><p id="hostError" class="error"></p>`}
+function renderHost(){screen.innerHTML=`<div class="tag">Host · keep this screen open</div><div class="center"><div class="muted">Share this room code with your team</div><div class="roomcode">${esc(room)}</div><p class="muted">Teammates open this same quiz website and enter the code. No participant link is needed.</p></div><div id="hostState"></div><p id="hostError" class="error"></p>`}
 function setShareLinks(urls){shareUrls=[...new Set(urls)].filter(Boolean);const link=shareUrls[0]||`${location.origin}/live.html?room=${encodeURIComponent(room)}`,a=document.getElementById('joinLink');if(!a)return;a.href=link;a.textContent=link;const details=document.getElementById('alternateLinks'),list=document.getElementById('linkList');if(shareUrls.length>1){details.classList.remove('hidden');list.innerHTML=shareUrls.slice(1).map(url=>`<li><a href="${esc(url)}">${esc(url)}</a></li>`).join('')}}
 function renderParticipant(){screen.innerHTML=`<div class="tag">Participant · room ${esc(room)}</div><div id="participantState"></div><p id="participantError" class="error"></p>`}
 async function copyLink(){try{await navigator.clipboard.writeText(document.getElementById('joinLink').href);document.querySelector('.joinbox button').textContent='Copied ✓'}catch{document.getElementById('hostError').textContent='Copy the link from the address bar.'}}
@@ -70,12 +70,12 @@ function countdown(){return lastState?.endsAt?Math.max(0,Math.ceil((lastState.en
 function updateCountdown(){const n=countdown(),el=document.getElementById('countdown');if(el){el.textContent=`00:${String(n).padStart(2,'0')}`;el.classList.toggle('urgent',n<=5)}}
 function drawHost(s){
  const el=document.getElementById('hostState');if(!el)return;
- const roomCodeBlock=screen.querySelector(':scope > .center'),shareBox=screen.querySelector(':scope > .joinbox'),hostHeading=document.getElementById('hostHeading');
+ const roomCodeBlock=screen.querySelector(':scope > .center'),shareBox=screen.querySelector(':scope > .joinbox');
  if(s.stage==='lobby'){
-  roomCodeBlock?.classList.remove('hidden');shareBox?.classList.remove('hidden');hostHeading?.classList.remove('hidden');hostHeading.textContent='Waiting room';
-  el.innerHTML=`<div class="center"><h2>Room ready! 🎈</h2><p class="muted">Share the code, let everyone settle in, then start whenever the team is ready.</p><button onclick="startQuiz()">Start the fun →</button></div>`;return
+  roomCodeBlock?.classList.remove('hidden');shareBox?.classList.remove('hidden');
+  el.innerHTML=`<div class="center"><p class="muted">Once everyone has joined, start the quiz.</p><button onclick="startQuiz()">Start the fun →</button></div>`;return
  }
- roomCodeBlock?.classList.add('hidden');shareBox?.classList.add('hidden');hostHeading?.classList.add('hidden');
+ roomCodeBlock?.classList.add('hidden');shareBox?.classList.add('hidden');
  const canPrevious=s.stage==='round-complete'||s.stage==='quiz-complete'?s.roundCount>0:s.questionNumber>1;
  const previous=canPrevious?'<button class="secondary" onclick="previousQuestion()">← Previous question</button>':'';
  if(s.stage==='round-complete'){
