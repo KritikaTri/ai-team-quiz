@@ -88,56 +88,348 @@ button{border-radius:13px;background:var(--blue);font-weight:800;box-shadow:0 8p
 </main>
 <script>
 const starter = [
-{round:'Name That Hype 🔥',q:'Which Chinese AI lab shocked the market in early 2025 with a cheap, high-performing open model that briefly wiped ~$600B off Nvidia’s value?',o:['Alibaba Qwen','DeepSeek','Moonshot','Baidu Ernie'],a:1},
-{round:'Name That Hype 🔥',q:'“Vibe coding” — coined/popularized in 2025 — means:',o:['Coding with lo-fi beats','Building software by prompting AI and barely reading the code','Pair programming','A new IDE theme'],a:1},
-{round:'Name That Hype 🔥',q:'The AI coding editor that exploded in popularity and became a verb (“just Cursor it”) is:',o:['Cursor','Zed','Windsurf','Replit'],a:0},
-{round:'Name That Hype 🔥',q:'OpenAI’s “reasoning” model line that thinks before it answers is branded:',o:['GPT-4o','o-series (o1/o3)','Sora','DALL·E'],a:1},
-{round:'Name That Hype 🔥',q:'(True or False) Anthropic’s models are named after this word meaning “a passage of music” — Claude’s family includes Haiku, Sonnet, and Opus.',o:['True','False'],a:0},
-{round:'Show Me the Money 💸',q:'As of 2025, which company became the first to cross a $3–4 trillion market cap largely on AI-chip demand?',o:['Apple','Microsoft','Nvidia','Amazon'],a:2},
-{round:'Show Me the Money 💸',q:'OpenAI’s rumored/reported valuation in 2025 climbed into the range of:',o:['~$30B','~$90B','~$300B+','~$1T'],a:2},
-{round:'Show Me the Money 💸',q:'“Stargate” in AI news in 2025 refers to:',o:['A Sora film','A massive multi-$100B AI data-center/infra project','A jailbreak','Google’s chip'],a:1},
-{round:'Show Me the Money 💸',q:'(True or False) Meta made headlines in 2025 reportedly offering $100M+ pay packages to poach top AI researchers.',o:['True','False'],a:0},
-{round:'It Went Viral 📸',q:'The 2025 image trend that flooded social media had everyone turning their photos into the style of:',o:['Pixar','Studio Ghibli','The Simpsons','LEGO'],a:1},
-{round:'It Went Viral 📸',q:'Which text-to-video model’s hyper-real clips kept making people ask “is this real?”',o:['Sora / Veo','Midjourney','Firefly','Stable Audio'],a:0},
-{round:'It Went Viral 📸',q:'“AI slop” is the new slang for:',o:['Fast inference','Low-quality mass-produced AI content clogging the internet','A training technique','GPU cooling'],a:1},
-{round:'Agents & Protocols 🤖',q:'“Agentic AI” — 2025’s biggest buzzword — means AI that:',o:['Writes poems','Plans and takes multi-step actions using tools, not just chats','Runs on-device','Only answers questions'],a:1},
-{round:'Agents & Protocols 🤖',q:'MCP, the standard everyone adopted in 2025 to connect AI to tools/data, stands for:',o:['Multi-Core Processing','Model Context Protocol','Managed Compute Plane','Machine Control Panel'],a:1},
-{round:'Agents & Protocols 🤖',q:'Which AI coding agent/CLI names are real 2025 products? Pick the odd one out.',o:['GitHub Copilot','Claude Code','Codex','TurboTest 9000 (fake)'],a:3},
-{round:'Agents & Protocols 🤖',q:'(True or False) By 2025, AI code review and AI test generation became standard features competing with human QA workflows.',o:['True','False'],a:0},
-{round:'Oops & Ethics 😬',q:'A real 2024–25 headline: lawyers got sanctioned because ChatGPT did this in a legal brief:',o:['Leaked data','Invented fake case citations (hallucinated)','Charged too much','Missed a deadline'],a:1},
-{round:'Oops & Ethics 😬',q:'The EU landmark law regulating AI by risk tier that started taking effect is the:',o:['GDPR','EU AI Act','DMA','CLOUD Act'],a:1},
-{round:'Oops & Ethics 😬',q:'(True or False) “Hallucination” was so mainstream that Dictionary.com / Cambridge named AI-related words as words of the year in recent years.',o:['True','False'],a:0},
-{round:'Oops & Ethics 😬',q:'Which of these is a genuine AI-safety concern teams now test for?',o:['Prompt injection','Jailbreaks','Data leakage','All of the above'],a:3},
-{round:'Lightning / Tie-Breakers ⚡',q:'Elon Musk’s AI company and chatbot are named:',o:['OpenAI / ChatGPT','xAI / Grok','Meta / Llama','Mistral / Le Chat'],a:1},
-{round:'Lightning / Tie-Breakers ⚡',q:'Google’s flagship model family that replaced Bard is:',o:['Gemini','PaLM','LaMDA','Duet'],a:0},
-{round:'Lightning / Tie-Breakers ⚡',q:'The French open-weights AI darling of Europe is:',o:['Cohere','Mistral','Aleph Alpha','Hugging Face'],a:1},
-{round:'Lightning / Tie-Breakers ⚡',q:'(Closest wins) Roughly how many weekly active users did ChatGPT report hitting in 2025?',o:[],a:'800 million',kind:'guess',note:'Suggested target: about 800 million. Accept a range your host chooses (the original suggestion was 500M–1B).'},
-{round:'Lightning / Tie-Breakers ⚡',q:'Will an AI agent take over writing our regression suites before 2030?',o:['Yes','No','Depends / unsure'],a:-1,kind:'poll'},
-{round:'AI in the Wild — Applications 🌍',q:'Which everyday app feature is powered by AI? Pick the odd one out — the NOT-AI one.',o:['Netflix recommendations','Gmail Smart Reply','Spotify Discover Weekly','The calculator app’s “=” button (not AI)'],a:3},
-{round:'AI in the Wild — Applications 🌍',q:'“Copilot for everything” — which pairing is NOT a real AI assistant product?',o:['GitHub Copilot','Microsoft 365 Copilot','Excel Clippy Pro (fake)','Salesforce Einstein'],a:2},
-{round:'AI in the Wild — Applications 🌍',q:'In healthcare, AI is now routinely used to:',o:['Read medical scans / detect tumors','Draft clinical notes','Speed up drug discovery','All of the above'],a:3},
-{round:'AI in the Wild — Applications 🌍',q:'(True or False) AlphaFold (DeepMind) predicting protein structures earned its creators a share of the 2024 Nobel Prize in Chemistry.',o:['True','False'],a:0},
-{round:'AI in the Wild — Applications 🌍',q:'Which is a real AI-powered customer-facing use case?',o:['Fraud detection in banking','Chatbot support agents','Dynamic pricing','All of the above'],a:3},
-{round:'AI Meets QA — Testing Team Edition 🧪',q:'“Self-healing tests” in AI test automation refers to:',o:['Tests that fix the product','Scripts that auto-update locators/selectors when the UI changes','Tests that never fail','Retrying forever'],a:1},
-{round:'AI Meets QA — Testing Team Edition 🧪',q:'Which is a genuine AI-assisted testing capability teams use today?',o:['Auto-generating test cases from requirements','Flaky-test detection','Visual regression diffing','All of the above'],a:3},
-{round:'AI Meets QA — Testing Team Edition 🧪',q:'(True or False) AI can now take a plain-English test plan and draft executable automation scripts (like this repo’s TCL→pyATS conversion).',o:['True','False'],a:0},
-{round:'AI Meets QA — Testing Team Edition 🧪',q:'The biggest risk of blindly trusting AI-generated tests is:',o:['They run too fast','False confidence — they may “pass” without truly validating behavior','Too much coverage','Better reports'],a:1},
-{round:'AI Meets QA — Testing Team Edition 🧪',q:'“Shift-left testing” + AI means:',o:['Testing only at the end','Catching bugs earlier via AI analysis in dev/CI','Moving the test lab','Left-aligning logs'],a:1},
-{round:'AI Meets QA — Testing Team Edition 🧪',q:'(Team debate) AI writes the test, AI reviews the test, AI fixes the test — who’s accountable when prod breaks? Loudest argument wins the point.',o:['The team / humans','The AI vendor','Both, depending on the case'],a:-1,kind:'debate'},
-{round:'AI in Networking — Home Turf 🌐',q:'“AIOps” in networking means:',o:['AI for office printers','Using AI/ML to automate network ops, anomaly detection & root-cause analysis','A new router OS','AI operators union'],a:1},
-{round:'AI in Networking — Home Turf 🌐',q:'Cisco’s AI-driven networking assistant / strategy brand is:',o:['Meraki only','Cisco AI Assistant / AI Canvas (across Security, Networking)','WebexBot','IOS-XR Copilot'],a:1},
-{round:'AI in Networking — Home Turf 🌐',q:'“Intent-Based Networking” (IBN) uses AI/automation to:',o:['Guess passwords','Translate business intent into config, then continuously verify it','Replace cables','Mine crypto'],a:1},
-{round:'AI in Networking — Home Turf 🌐',q:'A realistic AI use in a network test lab (like yours) is:',o:['Predicting which tests will fail (test impact analysis)','Auto-triaging failed runs from logs','Generating device configs/testbeds from a spec','All of the above'],a:3},
-{round:'AI in Networking — Home Turf 🌐',q:'(True or False) ML-based anomaly detection can flag abnormal traffic/latency patterns faster than static threshold alarms.',o:['True','False'],a:0},
-{round:'AI in Networking — Home Turf 🌐',q:'A “digital twin” of a network is:',o:['A backup router','A virtual replica used to simulate/test changes before production','Two NICs','A duplicate VLAN'],a:1},
-{round:'AI in Networking — Home Turf 🌐',q:'Which Cisco/industry area is actively applying LLMs today?',o:['Automated show-command/log analysis','Config generation & review','Natural-language network queries (“why is link X down?”)','All of the above'],a:3},
-{round:'AI in Networking — Home Turf 🌐',q:'(Guess the acronym) In this workspace, AI turns legacy TCL scripts into modern _____ test automation.',o:[],a:'pyATS',kind:'guess'},
-{round:'AI in Networking — Home Turf 🌐',q:'(Networking tie-breaker) An AI agent parses raw “show isis neighbors” CLI into structured JSON using which pyATS component?',o:[],a:'Genie (parsers)',kind:'guess'}
+  {
+    "round": "Name That Hype 🔥",
+    "q": "Which Chinese AI lab shocked the market in early 2025 with a cheap, high-performing open model that briefly wiped ~$600B off Nvidia’s value?",
+    "o": [
+      "Alibaba Qwen",
+      "DeepSeek",
+      "Moonshot",
+      "Baidu Ernie"
+    ],
+    "a": 1
+  },
+  {
+    "round": "Name That Hype 🔥",
+    "q": "“Vibe coding” — coined/popularized in 2025 — means:",
+    "o": [
+      "Coding with lo-fi beats",
+      "Building software by prompting AI and barely reading the code",
+      "Pair programming",
+      "A new IDE theme"
+    ],
+    "a": 1
+  },
+  {
+    "round": "Name That Hype 🔥",
+    "q": "(True or False) Anthropic’s models are named after this word meaning “a passage of music” — Claude’s family includes Haiku, Sonnet, and Opus.",
+    "o": [
+      "True",
+      "False"
+    ],
+    "a": 0
+  },
+  {
+    "round": "Show Me the Money 💸",
+    "q": "As of 2025, which company became the first to cross a $3–4 trillion market cap largely on AI-chip demand?",
+    "o": [
+      "Apple",
+      "Micron Technologies",
+      "Nvidia",
+      "Bloomberg"
+    ],
+    "a": 2
+  },
+  {
+    "round": "Show Me the Money 💸",
+    "q": "OpenAI’s rumored/reported valuation in 2025 climbed into the range of:",
+    "o": [
+      "~$30B",
+      "~$90B",
+      "~$300B+",
+      "~$1T"
+    ],
+    "a": 2
+  },
+  {
+    "round": "Show Me the Money 💸",
+    "q": "“Stargate” in AI news in 2025 refers to:",
+    "o": [
+      "A Sora film",
+      "A massive multi-$100B AI data-center/infra project",
+      "A jailbreak",
+      "Google’s chip"
+    ],
+    "a": 1
+  },
+  {
+    "round": "It Went Viral 📸",
+    "q": "The 2025 image trend that flooded social media had everyone turning their photos into the style of:",
+    "o": [
+      "Pixar",
+      "Studio Ghibli",
+      "The Simpsons",
+      "LEGO"
+    ],
+    "a": 1
+  },
+  {
+    "round": "It Went Viral 📸",
+    "q": "Which text-to-video model’s hyper-real clips kept making people ask “is this real?”",
+    "o": [
+      "Sora / Veo",
+      "Midjourney",
+      "Firefly",
+      "Stable Audio"
+    ],
+    "a": 0
+  },
+  {
+    "round": "It Went Viral 📸",
+    "q": "“AI slop” is the new slang for:",
+    "o": [
+      "Fast inference",
+      "Low-quality mass-produced AI content clogging the internet",
+      "A training technique",
+      "GPU cooling"
+    ],
+    "a": 1
+  },
+  {
+    "round": "Agents & Protocols 🤖",
+    "q": "(True or False) By 2025, AI code review and AI test generation became standard features competing with human QA workflows.",
+    "o": [
+      "True",
+      "False"
+    ],
+    "a": 0
+  },
+  {
+    "round": "Oops & Ethics 😬",
+    "q": "A real 2024–25 headline: lawyers got sanctioned because ChatGPT did this in a legal brief:",
+    "o": [
+      "Leaked data",
+      "Invented fake case citations (hallucinated)",
+      "Charged too much",
+      "Missed a deadline"
+    ],
+    "a": 1
+  },
+  {
+    "round": "Oops & Ethics 😬",
+    "q": "The EU landmark law regulating AI by risk tier that started taking effect is the:",
+    "o": [
+      "GDPR",
+      "EU AI Act",
+      "DMA",
+      "CLOUD Act"
+    ],
+    "a": 1
+  },
+  {
+    "round": "Oops & Ethics 😬",
+    "q": "(True or False) “Hallucination” was so mainstream that Dictionary.com / Cambridge named AI-related words as words of the year in recent years.",
+    "o": [
+      "True",
+      "False"
+    ],
+    "a": 0
+  },
+  {
+    "round": "Oops & Ethics 😬",
+    "q": "Which of these is a genuine AI-safety concern teams now test for?",
+    "o": [
+      "Prompt injection",
+      "Jailbreaks",
+      "Data leakage",
+      "All of the above"
+    ],
+    "a": 3
+  },
+  {
+    "round": "Lightning / Tie-Breakers ⚡",
+    "q": "Elon Musk’s AI company and chatbot are named:",
+    "o": [
+      "OpenAI / ChatGPT",
+      "xAI / Grok",
+      "Meta / Llama",
+      "Mistral / Le Chat"
+    ],
+    "a": 1
+  },
+  {
+    "round": "Lightning / Tie-Breakers ⚡",
+    "q": "Google’s flagship model family that replaced Bard is:",
+    "o": [
+      "Gemini",
+      "Deepseek",
+      "Llama",
+      "Duet"
+    ],
+    "a": 0
+  },
+  {
+    "round": "Lightning / Tie-Breakers ⚡",
+    "q": "The French open-weights AI darling of Europe is:",
+    "o": [
+      "Cohere",
+      "Mistral",
+      "Aleph Alpha",
+      "Hugging Face"
+    ],
+    "a": 1
+  },
+  {
+    "round": "Lightning / Tie-Breakers ⚡",
+    "q": "(Closest wins) Roughly how many weekly active users did ChatGPT report hitting in 2025?",
+    "o": [],
+    "a": "800 million",
+    "kind": "guess",
+    "note": "Suggested target: about 800 million. Accept a range your host chooses (the original suggestion was 500M–1B)."
+  },
+  {
+    "round": "Lightning / Tie-Breakers ⚡",
+    "q": "Will an AI agent take over writing our regression suites before 2030?",
+    "o": [
+      "Yes",
+      "No",
+      "Depends / unsure"
+    ],
+    "a": -1,
+    "kind": "poll"
+  },
+  {
+    "round": "AI Meets QA — Testing Team Edition 🧪",
+    "q": "“Self-healing tests” in AI test automation refers to:",
+    "o": [
+      "Tests that fix the product",
+      "Scripts that auto-update locators/selectors when the UI changes",
+      "Tests that never fail",
+      "Retrying forever"
+    ],
+    "a": 1
+  },
+  {
+    "round": "AI Meets QA — Testing Team Edition 🧪",
+    "q": "Which is a genuine AI-assisted testing capability teams use today?",
+    "o": [
+      "Auto-generating test cases from requirements",
+      "Flaky-test detection",
+      "Visual regression diffing",
+      "All of the above"
+    ],
+    "a": 3
+  },
+  {
+    "round": "AI Meets QA — Testing Team Edition 🧪",
+    "q": "The biggest risk of blindly trusting AI-generated tests is:",
+    "o": [
+      "They run too fast",
+      "False confidence — they may “pass” without truly validating behavior",
+      "Too much coverage",
+      "Better reports"
+    ],
+    "a": 1
+  },
+  {
+    "round": "AI Meets QA — Testing Team Edition 🧪",
+    "q": "“Shift-left testing” + AI means:",
+    "o": [
+      "Testing only at the end",
+      "Catching bugs earlier via AI analysis in dev/CI",
+      "Moving the test lab",
+      "Left-aligning logs"
+    ],
+    "a": 1
+  },
+  {
+    "round": "AI Meets QA — Testing Team Edition 🧪",
+    "q": "(Team debate) AI writes the test, AI reviews the test, AI fixes the test — who’s accountable when prod breaks? Loudest argument wins the point.",
+    "o": [
+      "The team / humans",
+      "The AI vendor",
+      "Both, depending on the case"
+    ],
+    "a": -1,
+    "kind": "debate"
+  },
+  {
+    "round": "AI in Networking — Home Turf 🌐",
+    "q": "“AIOps” in networking means:",
+    "o": [
+      "AI for office printers",
+      "Using AI/ML to automate network ops, anomaly detection & root-cause analysis",
+      "A new router OS",
+      "AI operators union"
+    ],
+    "a": 1
+  },
+  {
+    "round": "AI in Networking — Home Turf 🌐",
+    "q": "Cisco’s AI-driven networking assistant / strategy brand is:",
+    "o": [
+      "Meraki only",
+      "Cisco AI Assistant / AI Canvas (across Security, Networking)",
+      "WebexBot",
+      "IOS-XR Copilot"
+    ],
+    "a": 1
+  },
+  {
+    "round": "AI in Networking — Home Turf 🌐",
+    "q": "“Intent-Based Networking” (IBN) uses AI/automation to:",
+    "o": [
+      "Guess passwords",
+      "Translate business intent into config, then continuously verify it",
+      "Replace cables",
+      "Mine crypto"
+    ],
+    "a": 1
+  },
+  {
+    "round": "AI in Networking — Home Turf 🌐",
+    "q": "A realistic AI use in a network test lab (like yours) is:",
+    "o": [
+      "Predicting which tests will fail (test impact analysis)",
+      "Auto-triaging failed runs from logs",
+      "Generating device configs/testbeds from a spec",
+      "All of the above"
+    ],
+    "a": 3
+  },
+  {
+    "round": "AI in Networking — Home Turf 🌐",
+    "q": "(True or False) ML-based anomaly detection can flag abnormal traffic/latency patterns faster than static threshold alarms.",
+    "o": [
+      "True",
+      "False"
+    ],
+    "a": 0
+  },
+  {
+    "round": "AI in Networking — Home Turf 🌐",
+    "q": "A “digital twin” of a network is:",
+    "o": [
+      "A backup router",
+      "A virtual replica used to simulate/test changes before production",
+      "Two NICs",
+      "A duplicate VLAN"
+    ],
+    "a": 1
+  },
+  {
+    "round": "AI in Networking — Home Turf 🌐",
+    "q": "Which Cisco/industry area is actively applying LLMs today?",
+    "o": [
+      "Automated show-command/log analysis",
+      "Config generation & review",
+      "Natural-language network queries (“why is link X down?”)",
+      "All of the above"
+    ],
+    "a": 3
+  },
+  {
+    "round": "AI in Networking — Home Turf 🌐",
+    "q": "(Networking tie-breaker) An AI agent parses raw “show isis neighbors” CLI into structured JSON using which pyATS component?",
+    "o": [],
+    "a": "Genie (parsers)",
+    "kind": "guess"
+  }
 ];
 let qs,roundFilter='',mode='home',playOrder=[],playAt=0,selected=null,revealed=false,score=0,answered=0,awarded=false,selectedQuestion=null,pollTallies={},playAnswers={},roundNotice=false;
-try{qs=JSON.parse(localStorage.getItem('aiQaQuiz45'))||starter}catch{qs=starter}
+try{qs=JSON.parse(localStorage.getItem('aiQaQuizPublished'))||starter}catch{qs=starter}
 qs.forEach(q=>{if(q.kind==='debate'&&q.q.includes('Will an AI agent take over writing our regression suites before 2030?')){q.q='Will an AI agent take over writing our regression suites before 2030?';q.kind='poll';q.o=['Yes','No','Depends / unsure'];q.a=-1}})
-function save(){window.qs=qs;localStorage.setItem('aiQaQuiz45',JSON.stringify(qs));updateCount()}
+function save(){window.qs=qs;localStorage.setItem('aiQaQuizPublished',JSON.stringify(qs));updateCount()}
 function rounds(){return [...new Set(qs.map(x=>x.round))]}
 function updateCount(){const el=document.getElementById('count');if(el)el.textContent=`${qs.length} questions · ${rounds().length} rounds`;const qn=document.getElementById('homeQCount'),rn=document.getElementById('homeRCount');if(qn)qn.textContent=qs.length;if(rn)rn.textContent=rounds().length}
 function setMode(m,updateHash=true){mode=m;const ids={home:'home',edit:'editor',play:'player'},hashes={home:'#home',edit:'#editor',play:'#player'};if(updateHash&&location.hash!==hashes[m])history.replaceState(null,'',hashes[m]);Object.entries(ids).forEach(([key,id])=>document.getElementById(id).classList.toggle('hidden',m!==key));['homeTab','editTab','playTab'].forEach(id=>document.getElementById(id).classList.toggle('active',id===m+'Tab'));document.getElementById('editTools').classList.toggle('hidden',m!=='edit');document.querySelector('.footnote').classList.toggle('hidden',m!=='edit');if(m==='edit')renderEditor();if(m==='play'){roundFilter='All rounds';startPlay()}}
