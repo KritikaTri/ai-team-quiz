@@ -121,17 +121,18 @@ function sanitizeQuestion(input, index) {
       o: [],
       a: safeText(input?.a, '', 220),
       kind,
-      note: safeText(input?.note, '', 300)
+      note: safeText(input?.note, '', 300),
+      hostNote: safeText(input?.hostNote, '', 500)
     };
   }
 
   if (kind === 'debate') {
-    return { round, q, o: [], a: -1, kind };
+    return { round, q, o: [], a: -1, kind, hostNote: safeText(input?.hostNote, '', 500) };
   }
 
   while (options.length < 2) options.push(`Choice ${options.length + 1}`);
   if (kind === 'poll') {
-    return { round, q, o: options, a: -1, kind };
+    return { round, q, o: options, a: -1, kind, hostNote: safeText(input?.hostNote, '', 500) };
   }
 
   const answer = Number(input?.a);
@@ -140,7 +141,8 @@ function sanitizeQuestion(input, index) {
     q,
     o: options,
     a: Number.isInteger(answer) && answer >= 0 && answer < options.length ? answer : 0,
-    kind: 'mcq'
+    kind: 'mcq',
+    hostNote: safeText(input?.hostNote, '', 500)
   };
 }
 
@@ -149,7 +151,10 @@ function sanitizeQuestions(questions) {
     throw Object.assign(new Error('No quiz questions supplied.'), { status: 400 });
   }
 
-  return questions.slice(0, MAX_QUESTIONS).map(sanitizeQuestion);
+  const cleaned = questions.slice(0, MAX_QUESTIONS).map(sanitizeQuestion);
+  const rounds = [...new Set(cleaned.map(question => question.round))];
+  return rounds.flatMap(round => cleaned.filter(question => question.round === round && question.kind !== 'debate')
+    .concat(cleaned.filter(question => question.round === round && question.kind === 'debate')));
 }
 
 function questionKey(room) {
@@ -263,7 +268,32 @@ function publicQuestion(question, stage) {
   return payload;
 }
 
-function stateFor(room, voterId = '') {
+function recapFor(room) {
+  const lastRound = room.recapRoundIndex ?? room.roundIndex;
+  const firstRound = Math.max(0, lastRound - 1);
+  return [firstRound, lastRound].map(roundIndex => {
+    const round = room.rounds[roundIndex];
+    const questions = room.questions.filter(question => question.round === round);
+    let totalCorrect = 0, totalResponses = 0;
+    const questionStats = questions.map((question, position) => {
+      const session = room.sessions[`${roundIndex}:${position}`];
+      if (!session || session.open || session.skipped || !['mcq', 'guess'].includes(question.kind || 'mcq')) return null;
+      const votes = Object.values(session.votes || {});
+      if (!votes.length) return null;
+      if (question.kind === 'guess') {
+        const correct = votes.filter(value => normalize(value) === normalize(question.a)).length;
+        totalCorrect += correct; totalResponses += votes.length;
+        return { label: question.q, correct, total: votes.length, percent: votes.length ? Math.round(correct / votes.length * 100) : 0 };
+      }
+      const correct = votes.filter(value => Number(value) === Number(question.a)).length;
+      totalCorrect += correct; totalResponses += votes.length;
+      return { label: question.q, correct, total: votes.length, percent: votes.length ? Math.round(correct / votes.length * 100) : 0 };
+    }).filter(Boolean);
+    return { name: round, totalCorrect, totalResponses, percent: totalResponses ? Math.round(totalCorrect / totalResponses * 100) : 0, questionStats };
+  });
+}
+
+function stateFor(room, voterId = '', isHost = false) {
   closeExpiredVote(room);
   const indices = currentIndices(room);
   const question = currentQuestion(room);
@@ -273,6 +303,8 @@ function stateFor(room, voterId = '') {
   }
   let stage;
   if (!room.started) stage = 'lobby';
+  else if (room.quizFinished) stage = 'quiz-complete';
+  else if (room.recapPending) stage = 'round-recap';
   else if (!question) stage = room.roundIndex < room.rounds.length - 1 ? 'round-complete' : 'quiz-complete';
   else if (!room.active) stage = 'waiting';
   else stage = room.active.open ? 'voting' : 'results';
@@ -302,16 +334,21 @@ function stateFor(room, voterId = '') {
     roundsCount: room.rounds.length,
     questionNumber: question ? room.position + 1 : indices.length,
     roundCount: indices.length,
+    rounds: room.rounds.map((name, index) => ({ name, index, questionCount: room.questions.filter(question => question.round === name).length, questionTitles: room.questions.filter(question => question.round === name).map(question => question.q) })),
     stage,
     question: stage === 'lobby' ? null : publicQuestion(question, stage),
     endsAt: room.active?.endsAt || null,
+    durationSeconds: room.active?.durationSeconds || room.durationSeconds || 30,
     totalVotes: values.length,
     myVote: voterId ? votes[voterId] ?? null : null,
     counts,
     correctCount,
     correctPercent,
     answerIndex: stage === 'results' && question && kind === 'mcq' ? question.a : null,
-    answer: stage === 'results' && question ? (typeof question.a === 'number' ? (question.o || [])[question.a] : question.a) : null
+    answer: stage === 'results' && question ? (typeof question.a === 'number' ? (question.o || [])[question.a] : question.a) : null,
+    hostNote: isHost ? question?.hostNote || '' : '',
+    recap: stage === 'round-recap' ? recapFor(room) : null,
+    recapFinal: Boolean(room.recapPending && room.recapRoundIndex >= room.rounds.length - 1)
   };
 }
 
@@ -328,6 +365,10 @@ function createRoom(body) {
     rounds,
     roundIndex,
     position: 0,
+    durationSeconds: 30,
+    recapPending: false,
+    recapRoundIndex: null,
+    quizFinished: false,
     started: false,
     active: null,
     sessions: {},
@@ -340,24 +381,29 @@ function createRoom(body) {
   return room;
 }
 
-function prepareAutomaticVote(room, duration = 15) {
+function normalizeDuration(duration, fallback = 30) {
+  return Math.min(90, Math.max(5, Number(duration) || fallback));
+}
+
+function prepareAutomaticVote(room, duration = room.durationSeconds || 30) {
   const question = currentQuestion(room);
   if (!question || (question.kind || 'mcq') === 'debate') return;
-  const seconds = Math.min(90, Math.max(5, Number(duration) || 15));
+  const seconds = normalizeDuration(duration);
   room.active = {
     questionKey: questionKey(room),
     startedAt: Date.now(),
     endsAt: Date.now() + seconds * 1000,
+    durationSeconds: seconds,
     open: true,
     votes: {}
   };
   rememberSession(room);
 }
 
-function startQuiz(room) {
+function startQuiz(room, duration) {
   if (room.started) return;
   room.started = true;
-  prepareAutomaticVote(room);
+  prepareAutomaticVote(room, normalizeDuration(duration, 30));
   touchRoom(room);
 }
 
@@ -367,6 +413,21 @@ function startVote(room, duration) {
   if (!question) throw Object.assign(new Error('There is no question to vote on.'), { status: 409 });
   if ((question.kind || 'mcq') === 'debate') throw Object.assign(new Error('Discussion questions do not use timed voting.'), { status: 409 });
   prepareAutomaticVote(room, duration);
+  touchRoom(room);
+}
+
+function setVoteDuration(room, duration) {
+  const question = currentQuestion(room);
+  if (!question || (question.kind || 'mcq') === 'debate') {
+    throw Object.assign(new Error('This question does not use a timer.'), { status: 409 });
+  }
+  const seconds = normalizeDuration(duration);
+  if (!room.active?.open) throw Object.assign(new Error('Voting is closed for this question.'), { status: 409 });
+  const now = Date.now();
+  room.active.startedAt = now;
+  room.active.endsAt = now + seconds * 1000;
+  room.active.durationSeconds = seconds;
+  rememberSession(room);
   touchRoom(room);
 }
 
@@ -401,6 +462,21 @@ function recordVote(room, body) {
   touchRoom(room);
 }
 
+function skipQuestion(room) {
+  const indices = currentIndices(room);
+  if (room.position >= indices.length) {
+    throw Object.assign(new Error('This round is already complete.'), { status: 409 });
+  }
+  if (room.active?.open) room.active.open = false;
+  if (room.active) room.active.skipped = true;
+  rememberSession(room);
+  room.position += 1;
+  restoreSession(room);
+  if (room.position >= indices.length) markRoundRecap(room);
+  if (!room.active) prepareAutomaticVote(room);
+  touchRoom(room);
+}
+
 function moveNext(room) {
   const indices = currentIndices(room);
   if (room.position >= indices.length) {
@@ -409,8 +485,17 @@ function moveNext(room) {
   rememberSession(room);
   room.position += 1;
   restoreSession(room);
+  if (room.position >= indices.length) markRoundRecap(room);
   if (!room.active) prepareAutomaticVote(room);
   touchRoom(room);
+}
+
+function markRoundRecap(room) {
+  const completed = room.roundIndex + 1;
+  if (completed % 2 === 0) {
+    room.recapPending = true;
+    room.recapRoundIndex = room.roundIndex;
+  }
 }
 
 function movePrevious(room) {
@@ -426,6 +511,22 @@ function movePrevious(room) {
 }
 
 function moveNextRound(room) {
+  if (room.recapPending) {
+    room.recapPending = false;
+    if (room.roundIndex >= room.rounds.length - 1) {
+      room.quizFinished = true;
+      room.recapRoundIndex = null;
+      touchRoom(room);
+      return;
+    }
+    room.roundIndex += 1;
+    room.position = 0;
+    restoreSession(room);
+    if (!room.active) prepareAutomaticVote(room);
+    room.recapRoundIndex = null;
+    touchRoom(room);
+    return;
+  }
   if (room.roundIndex >= room.rounds.length - 1) {
     throw Object.assign(new Error('This is the final round.'), { status: 409 });
   }
@@ -483,7 +584,8 @@ async function route(req, res) {
   if (req.method === 'GET' && url.pathname === '/api/room/state') {
     const room = requireRoom(url.searchParams.get('id'));
     const voterId = safeText(url.searchParams.get('voter'), '', 120);
-    return send(res, 200, stateFor(room, voterId));
+    const isHost = Boolean(room.hostToken && req.headers['x-quiz-host-token'] === room.hostToken);
+    return send(res, 200, stateFor(room, voterId, isHost));
   }
 
   if (req.method === 'POST' && url.pathname.startsWith('/api/room/')) {
@@ -497,9 +599,11 @@ async function route(req, res) {
 
     requireHost(room, body.hostToken);
 
-    if (url.pathname === '/api/room/start') startQuiz(room);
+    if (url.pathname === '/api/room/start') startQuiz(room, body.duration);
     else if (url.pathname === '/api/room/start-vote') startVote(room, body.duration);
+    else if (url.pathname === '/api/room/set-duration') setVoteDuration(room, body.duration);
     else if (url.pathname === '/api/room/close-vote') closeVote(room);
+    else if (url.pathname === '/api/room/skip') skipQuestion(room);
     else if (url.pathname === '/api/room/next') moveNext(room);
     else if (url.pathname === '/api/room/previous') movePrevious(room);
     else if (url.pathname === '/api/room/next-round') moveNextRound(room);
